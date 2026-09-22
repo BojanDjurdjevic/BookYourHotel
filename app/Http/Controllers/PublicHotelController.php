@@ -17,7 +17,21 @@ class PublicHotelController extends Controller
 
     public function show(Hotel $hotel)
     {
-        abort_unless($hotel->published && ! $hotel->archived_at, 404);
+        abort_unless($hotel->isPubliclyVisible(), 404);
+        return $this->details($hotel);
+    }
+
+    public function preview(Hotel $hotel)
+    {
+        \Illuminate\Support\Facades\Gate::authorize('view', $hotel);
+        abort_unless(auth()->user()->isSupplier() && $hotel->isDemoSandbox()
+            && $hotel->published && $hotel->canBePublished(), 404);
+        return $this->details($hotel, true)->header('Cache-Control', 'private, no-store')
+            ->header('X-Robots-Tag', 'noindex, nofollow');
+    }
+
+    private function details(Hotel $hotel, bool $demoPreview = false)
+    {
         $hotel->load([
             'images' => fn ($query) => $query->orderBy('position')->orderBy('id'),
             'rooms.featuredImage',
@@ -26,6 +40,6 @@ class PublicHotelController extends Controller
             'rooms.boardTypes',
         ]);
 
-        return view('hotels.show', compact('hotel'));
+        return response()->view('hotels.show', compact('hotel', 'demoPreview'));
     }
 }

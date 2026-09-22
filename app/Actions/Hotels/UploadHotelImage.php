@@ -12,6 +12,16 @@ class UploadHotelImage {
 
     public function execute(Hotel $hotel, $image, $position, $isFeatured = false)
     {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($hotel, $image, $position, $isFeatured) {
+            $hotel = Hotel::whereKey($hotel->id)->lockForUpdate()->firstOrFail();
+            abort_if($hotel->archived_at, 403, 'Archived hotels cannot be changed.');
+            app(\App\Services\DemoSupplierSandbox::class)->ensureImageCapacity($hotel);
+            return $this->store($hotel, $image, $position, $isFeatured);
+        });
+    }
+
+    private function store(Hotel $hotel, $image, $position, bool $isFeatured)
+    {
         $id = $hotel->id;
         $path = $this->uploadImage($image, "hotels/$id");
 

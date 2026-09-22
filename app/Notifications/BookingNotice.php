@@ -16,7 +16,7 @@ class BookingNotice extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         if ($notifiable instanceof User) {
-            return self::isDemoEmail($notifiable->email) ? ['database'] : ['database', 'mail'];
+            return $notifiable->is_demo_sandbox === true ? ['database'] : ['database', 'mail'];
         }
 
         $email = method_exists($notifiable, 'routeNotificationFor')

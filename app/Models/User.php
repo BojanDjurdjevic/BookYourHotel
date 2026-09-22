@@ -9,6 +9,22 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    protected static function booted(): void
+    {
+        static::updating(function (User $user) {
+            if ($user->getOriginal('is_demo_sandbox') && $user->isDirty([
+                'email', 'password', 'role', 'is_demo_sandbox', 'supplier_deactivated_at',
+            ])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'demo' => 'The shared demo account credentials and access cannot be changed.',
+                ]);
+            }
+        });
+        static::deleting(function (User $user) {
+            abort_if($user->is_demo_sandbox, 403, 'The shared demo account cannot be deleted.');
+        });
+    }
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
     protected $fillable = [
@@ -32,6 +48,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'is_demo_sandbox' => 'boolean',
             'supplier_deactivated_at' => 'datetime',
             'email_verified_at' => 'datetime',
             'password' => 'hashed',

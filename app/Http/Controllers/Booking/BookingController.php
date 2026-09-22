@@ -21,7 +21,7 @@ class BookingController extends Controller
 
     public function show(Hotel $hotel, \App\Http\Requests\HotelSearchRequest $request)
     {
-        abort_unless($hotel->published && ! $hotel->archived_at, 404);
+        abort_unless($hotel->isPubliclyVisible(), 404);
         $hotel->load([
             'rooms.featuredImage',
             'rooms.boardTypes',
@@ -72,7 +72,7 @@ class BookingController extends Controller
     }
 
     public function availability(Hotel $hotel, Request $request) {
-        abort_unless($hotel->published && ! $hotel->archived_at, 404);
+        abort_unless($hotel->isPubliclyVisible(), 404);
         $request->validate([
             'check_in' => [
                 'required',

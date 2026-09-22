@@ -91,7 +91,8 @@ new class extends Component
         <label for="room-images" class="block text-sm font-medium text-gray-200">Upload room images</label>
         <input id="room-images" type="file" wire:model="images" multiple accept="image/jpeg,image/png,image/webp"
                class="mt-2 block w-full rounded-xl border border-gray-700 bg-gray-800 px-3 py-3 text-gray-100">
-        <p class="mt-1 text-sm text-gray-400">Up to 10 images per upload. JPEG and PNG files are stored as WebP.</p>
+        <p class="mt-1 text-sm text-gray-400">{{ auth()->user()->is_demo_sandbox ? 'Demo limit: '.config('demo-supplier.max_images').' images per room. If a batch reaches the limit, earlier images are kept.' : 'Up to 10 images per upload.' }} JPEG and PNG files are stored as WebP.</p>
+        @error('image') <p class="mt-2 text-sm text-red-400">{{ $message }}</p> @enderror
         @error('images') <p class="mt-2 text-sm text-red-400">{{ $message }}</p> @enderror
         @error('images.*') <p class="mt-2 text-sm text-red-400">{{ $message }}</p> @enderror
     </div>

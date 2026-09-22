@@ -16,8 +16,8 @@ class AddHotelRequest extends FormRequest
             'city' => 'required|string|min:3|max:64',
             'address' => 'required|string|max:128',
             'description' => 'nullable|string|max:255',
-            'facilities' => 'nullable|array',
-            'facilities.*' => 'string',
+            'facilities' => $this->user()?->is_demo_sandbox ? 'nullable|array|max:32' : 'nullable|array',
+            'facilities.*' => $this->user()?->is_demo_sandbox ? 'string|max:100' : 'string',
         ];
     }
 }

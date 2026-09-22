@@ -44,7 +44,7 @@ class HotelSearchService
         $matches = DB::query()->fromSub($rooms, 'c')->select('hotel_id')->selectRaw('MIN(stay_price) as search_price')
             ->when(isset($data['min_price']), fn ($q) => $q->whereRaw('stay_price >= CAST(? AS DECIMAL(18,2))', [$data['min_price']]))
             ->when(isset($data['max_price']), fn ($q) => $q->whereRaw('stay_price <= CAST(? AS DECIMAL(18,2))', [$data['max_price']]))->groupBy('hotel_id');
-        $hotels = Hotel::query()->where('published', true)->whereNull('hotels.archived_at')
+        $hotels = Hotel::publicCatalog()
             ->when($data['city'] ?? null, function ($q, $city) use ($data) {
                 // Canonical selections are exact; legacy free-text city URLs remain supported.
                 return !empty($data['country']) ? $q->where('city', $city)->where('country', $data['country']) : $q->where('city', 'like', '%'.addcslashes($city, '%_\\').'%');
@@ -70,7 +70,7 @@ class HotelSearchService
     }
     public function options(): array {
         return [
-            'hotelFacilities' => DB::table('hotels')->where('published', true)->whereNull('hotels.archived_at')->whereNotNull('facilities')->distinct()->pluck('facilities')
+            'hotelFacilities' => Hotel::publicCatalog()->toBase()->whereNotNull('facilities')->distinct()->pluck('facilities')
                 ->flatMap(fn ($json) => json_decode($json, true) ?? [])->map(fn ($facility) => ['key' => FacilityLabel::key($facility), 'value' => FacilityLabel::key($facility), 'label' => FacilityLabel::label($facility)])
                 ->unique('key')->sortBy('label')->values(),
             'roomFacilities' => CatalogOptions::facilities(),

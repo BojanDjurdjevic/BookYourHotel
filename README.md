@@ -95,7 +95,36 @@ php artisan demo:images
 
 Demo hotels, suppliers, bookings and images are fictional. Images are generated portfolio assets with local provenance. The media importer is deterministic and idempotent. The payment flow is a local simulator. The demo catalog cleanup command, when needed for a local database, is `php artisan demo:catalog --apply`.
 
-Known demo credentials are documented in the local project documentation only; never use them in a production database.
+The catalog seed users are separate from the recruiter sandbox below. Never publish or reuse their passwords in production.
+
+## Recruiter supplier sandbox
+
+Live site: [bookyourhotelapp.com](https://bookyourhotelapp.com). Sign in at [supplier demo login](https://bookyourhotelapp.com/login).
+
+- Email: `recruiter.supplier@example.test`
+- Password: `RecruiterDemo!2026`
+
+This fictional shared account is a temporary sandbox. Explore hotel and room setup, images, facilities, board options, pricing and inventory. Publishing enables an authenticated customer preview; sandbox hotels never enter the public booking marketplace and cannot receive bookings. The demo account cannot create bookings or change its login credentials.
+
+Hotels and their data automatically reset about 4–5 hours after hotel creation (hourly cleanup, minimum age 4 hours). Limits are 3 hotels, 8 rooms per hotel, 8 images per hotel or room, and 366 inventory dates per room. Archived items still count until cleanup. Other recruiters share this account and may see or edit its temporary data; use fictional information only.
+
+After deploying the additive migration, provision this account once with:
+
+```bash
+php artisan demo:supplier-create
+```
+
+The command is safe to rerun: it preserves existing credentials/data and refuses to take over an unrelated account. It does not invoke the demo catalog seeders.
+
+The existing scheduler runs `demo:supplier-reset` hourly with overlap protection; no new server cron is needed. Manual invocation uses the same age threshold:
+
+```bash
+php artisan demo:supplier-reset
+```
+
+Optional configuration: `DEMO_SUPPLIER_MAX_HOTELS=3`, `DEMO_SUPPLIER_MAX_ROOMS_PER_HOTEL=8`, `DEMO_SUPPLIER_MAX_IMAGES=8`, `DEMO_SUPPLIER_RETENTION_HOURS=4`. Defaults require no `.env` changes. Cleanup includes archived rooms and removes only numeric hotel/room owner directories on the public disk. Shared catalogs and the supplier account survive. Any booking reference or cleanup failure is logged, reported as skipped, and returns a failing command status for operator attention; historical data is never deleted. A filesystem failure rolls back database deletion for retry, though already removed sandbox files cannot be restored by that rollback. Livewire temporary uploads retain their existing automatic cleanup and upload throttles.
+
+Production release order: stage the code and built assets, apply the additive migration with `php artisan migrate --force` before serving the new code (use your normal atomic release or maintenance window), then run `php artisan demo:supplier-create`. Rebuild configuration/routes/views using your normal release process and restart queue workers. Verify `php artisan schedule:list`, login, private preview, and public exclusion. Do not roll back the sandbox isolation code while sandbox hotels remain in the database; keep isolation deployed until those hotels have safely expired and been removed. See [implementation and verification notes](docs/recruiter-sandbox.md) for the complete change inventory and limitations.
 
 ## Testing
 

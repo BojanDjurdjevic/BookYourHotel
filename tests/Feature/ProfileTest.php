@@ -43,6 +43,22 @@ class ProfileTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_profile_input_cannot_enable_demo_sandbox_for_users_or_suppliers(): void
+    {
+        foreach ([User::ROLE_USER, User::ROLE_SUPPLIER] as $role) {
+            $user = User::factory()->create(['role' => $role]);
+
+            $this->actingAs($user)->patch('/profile', [
+                'name' => 'Updated Name',
+                'email' => $user->email,
+                'is_demo_sandbox' => true,
+            ])->assertSessionHasNoErrors()->assertRedirect('/profile');
+
+            $this->assertFalse($user->refresh()->is_demo_sandbox);
+            $this->assertSame('Updated Name', $user->name);
+        }
+    }
+
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

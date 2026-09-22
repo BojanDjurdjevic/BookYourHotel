@@ -132,6 +132,11 @@ new class extends Component
     {{-- File input --}}
     <div>
         <input type="file" wire:model="images" multiple class="mb-4 p-2 bg-gray-700 rounded-lg">
+        @if(auth()->user()->is_demo_sandbox)
+            <p class="text-sm text-gray-400">Demo limit: {{ config('demo-supplier.max_images') }} images per hotel. If a batch reaches the limit, earlier images are kept.</p>
+        @endif
+        @error('images') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
+        @error('image') <p class="text-red-500 text-sm">{{ $message }}</p> @enderror
 
         @error('images.*') 
             <span class="text-red-500 text-sm">{{ $message }}</span> 

@@ -43,6 +43,7 @@ class InventoryService
             Gate::forUser($actor)->authorize('update', $hotel);
             $room->refresh();
             abort_if($room->archived_at, 403, 'Archived rooms cannot be changed.');
+            app(DemoSupplierSandbox::class)->ensureInventoryCapacity($hotel, $room, $rows);
             // Version zero represents a date that did not exist in the UI snapshot.
             $new = array_map(fn ($row) => [
                 'room_id' => $room->id, 'date' => $row['date'], 'available' => $room->total_units,

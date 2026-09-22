@@ -6,6 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Hotel extends Model
 {
+    public function scopePublicCatalog(\Illuminate\Database\Eloquent\Builder $query): void
+    {
+        $query->where('hotels.published', true)->whereNull('hotels.archived_at')
+            ->whereHas('supplier', fn ($supplier) => $supplier->where('is_demo_sandbox', false));
+    }
+
+    public function isDemoSandbox(): bool
+    {
+        return $this->supplier()->where('is_demo_sandbox', true)->exists();
+    }
+
+    public function isPubliclyVisible(): bool
+    {
+        return static::publicCatalog()->whereKey($this->id)->exists();
+    }
+
     protected $table = "hotels";
 
     protected $fillable = [

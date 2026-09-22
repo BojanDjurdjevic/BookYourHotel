@@ -1,5 +1,12 @@
 <x-app-layout>
     <div class="space-y-8">
+        @if($demoPreview ?? false)
+            <div class="rounded-xl border border-blue-800 bg-gray-900 p-4">
+                <p class="font-semibold text-blue-300">Demo customer preview</p>
+                <p class="mt-2">This hotel is private and temporary. Booking is disabled.</p>
+                <a href="{{ route('supplier.hotels.setup.publish', $hotel) }}" class="text-blue-400">Back to hotel setup</a>
+            </div>
+        @endif
         <a href="{{ route('hotels.index', request()->query()) }}" class="text-blue-400 hover:text-blue-300">Back to hotels</a>
         <div>
             <h1 class="text-3xl font-bold">{{ \App\Support\PublicLabel::clean($hotel->name, 'Hotel') }}</h1>
@@ -19,10 +26,12 @@
         @endif
 
         <p class="whitespace-pre-line text-gray-300">{{ $hotel->description }}</p>
-        <a href="{{ route('booking.show', ['hotel' => $hotel] + request()->only('check_in','check_out','adults','children')) }}" class="inline-flex min-h-12 items-center rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-500">Check availability and book</a>
+        @unless($demoPreview ?? false)
+            <a href="{{ route('booking.show', ['hotel' => $hotel] + request()->only('check_in','check_out','adults','children')) }}" class="inline-flex min-h-12 items-center rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-500">Check availability and book</a>
+        @endunless
         <div>
             <h2 class="text-2xl font-semibold">Rooms</h2>
-            <p class="mt-2 text-gray-400">Choose dates to see current availability and the final price for your stay.</p>
+            <p class="mt-2 text-gray-400">{{ ($demoPreview ?? false) ? 'Preview your room photos, facilities and board options below.' : 'Choose dates to see current availability and the final price for your stay.' }}</p>
         </div>
         <div class="grid gap-6 md:grid-cols-2">
             @forelse($hotel->rooms as $room)

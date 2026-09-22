@@ -35,22 +35,46 @@ class BookingNotificationTest extends TestCase
         $guest=$this->reservation(true);
         Notification::assertSentOnDemand(BookingNotice::class, fn($n,$channels,$recipient)=>$recipient->routes['mail']===$guest->guest_email && $n->via($recipient)===['mail']);
     }
-    public function test_demo_users_keep_database_notifications_without_mail_and_real_users_keep_both_channels(): void {
+    public function test_sandbox_supplier_keeps_database_notifications_without_mail_regardless_of_email(): void {
         $notice = new BookingNotice(['booking_number' => 'BYH-TEST', 'check_out' => '2026-10-07', 'type' => 'Booking created']);
 
-        $demo = User::factory()->create(['email' => 'supplier01@demo.bookyourhotel.test']);
-        $real = User::factory()->create(['email' => 'real.user@example.test']);
+        $demo = User::factory()->create([
+            'role' => User::ROLE_SUPPLIER,
+            'email' => 'recruiter.supplier@example.test',
+            'is_demo_sandbox' => true,
+        ]);
 
         $this->assertSame(['database'], $notice->via($demo));
-        $this->assertSame(['database', 'mail'], $notice->via($real));
+        $demo->notify($notice);
+        $this->assertSame($notice->data, $demo->notifications()->sole()->data);
     }
-    public function test_demo_anonymous_recipient_gets_no_mail_and_real_guest_keeps_mail(): void {
+    public function test_ordinary_supplier_keeps_database_and_mail_channels(): void {
+        $notice = new BookingNotice([]);
+        $supplier = User::factory()->create(['role' => User::ROLE_SUPPLIER, 'is_demo_sandbox' => false]);
+
+        $this->assertSame(['database', 'mail'], $notice->via($supplier));
+    }
+    public function test_user_marker_rather_than_email_domain_controls_mail_suppression(): void {
+        $notice = new BookingNotice([]);
+        $supplier = User::factory()->create([
+            'role' => User::ROLE_SUPPLIER,
+            'email' => 'supplier01@demo.bookyourhotel.test',
+            'is_demo_sandbox' => false,
+        ]);
+
+        $this->assertSame(['database', 'mail'], $notice->via($supplier));
+    }
+    public function test_fictional_anonymous_demo_address_gets_no_mail(): void {
         $notice = new BookingNotice(['booking_number' => 'BYH-TEST', 'check_out' => '2026-10-07', 'type' => 'Booking created']);
 
         $demo = Notification::route('mail', 'guest@demo.bookyourhotel.test');
-        $real = Notification::route('mail', 'guest@example.test');
 
         $this->assertSame([], $notice->via($demo));
+    }
+    public function test_real_anonymous_guest_keeps_mail(): void {
+        $notice = new BookingNotice([]);
+        $real = Notification::route('mail', 'guest@example.test');
+
         $this->assertSame(['mail'], $notice->via($real));
     }
     public function test_jobs_are_dispatched_only_after_commit_and_never_on_rollback(): void {

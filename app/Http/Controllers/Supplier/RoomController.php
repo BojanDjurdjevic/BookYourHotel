@@ -61,31 +61,7 @@ class RoomController extends Controller
     public function store(RoomRequest $request, Hotel $hotel)
     {
         Gate::authorize('update', $hotel);
-        //dd($request->validated());
-        $room = $hotel->rooms()->create(
-            $request->validated()
-        );
-        /*
-        $room->boardTypes()->sync(
-        $request->board_types ?? []
-        ); */
-
-        $syncData = [];
-
-        foreach ($request->board_types ?? [] as $boardTypeId => $data) {
-
-            if (empty($data['enabled'])) {
-                continue;
-            }
-
-            $syncData[$boardTypeId] = [
-                'price' => $data['price'] ?? 0
-            ];
-        }
-
-        $room->boardTypes()->sync($syncData);
-
-        $room->facilities()->sync($request->facilities ??  []);
+        $room = app(\App\Services\DemoSupplierSandbox::class)->createRoom($hotel, $request->user(), $request->validated());
 
         if(!$hotel->published)
         return redirect()

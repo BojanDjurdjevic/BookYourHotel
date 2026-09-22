@@ -48,6 +48,7 @@ class SupplierLifecycleService
 
     public function deactivateSupplier(User $supplier): void
     {
+        abort_if($supplier->is_demo_sandbox, 403, 'The shared demo account cannot be deactivated.');
         DB::transaction(function () use ($supplier) {
             $supplier = User::whereKey($supplier->id)->lockForUpdate()->firstOrFail();
             $hotels = Hotel::where('supplier_id', $supplier->id)->orderBy('id')->lockForUpdate()->get();

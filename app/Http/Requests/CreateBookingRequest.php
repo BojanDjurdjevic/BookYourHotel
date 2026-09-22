@@ -18,6 +18,11 @@ class CreateBookingRequest extends FormRequest
             'hotel_id' => [
                 'required',
                 \Illuminate\Validation\Rule::exists('hotels', 'id')->where('published', true)->whereNull('archived_at'),
+                function ($attribute, $value, $fail) {
+                    if (! \App\Models\Hotel::publicCatalog()->whereKey($value)->exists()) {
+                        $fail('This hotel is not available for booking.');
+                    }
+                },
             ],
 
             'check_in' => [

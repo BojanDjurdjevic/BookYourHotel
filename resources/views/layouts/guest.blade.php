@@ -3,21 +3,7 @@
       x-data="{ theme: window.__bookYourHotelTheme }"
       @bookyourhotel-theme-changed.window="theme = $event.detail.theme">
     <head>
-        <script>
-            (() => {
-                const saved = window.localStorage.getItem('bookyourhotel-theme');
-                const theme = saved === 'light' ? 'light' : 'dark';
-                document.documentElement.classList.toggle('dark', theme === 'dark');
-                window.__bookYourHotelTheme = theme;
-                window.toggleBookYourHotelTheme = () => {
-                    const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-                    document.documentElement.classList.toggle('dark', next === 'dark');
-                    window.localStorage.setItem('bookyourhotel-theme', next);
-                    window.__bookYourHotelTheme = next;
-                    window.dispatchEvent(new CustomEvent('bookyourhotel-theme-changed', { detail: { theme: next } }));
-                };
-            })();
-        </script>
+        @include('layouts.partials.theme-init')
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">

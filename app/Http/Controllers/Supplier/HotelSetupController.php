@@ -127,6 +127,8 @@ class HotelSetupController extends Controller
         $hotel->published = 1;
         $hotel->save(); 
 
-        return redirect()->back()->with('success', "Hotel $hotel->name is successfully published!");
+        return redirect()->back()->with('success', $hotel->isDemoSandbox()
+            ? 'Demo hotel is ready. Open the customer preview below. It will never appear in public search and will be automatically removed after a few hours.'
+            : "Hotel $hotel->name is successfully published!");
     }
 }

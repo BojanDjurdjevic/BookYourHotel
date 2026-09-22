@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $bgColor = auth()->user()->role == 'superadmin' ? 'bg-purple-900' : 'bg-emerald-900';
+        $bgColor = auth()->user()->role == 'superadmin' ? 'bg-purple-900' : 'supplier-sidebar--supplier';
     @endphp
 
     @if(auth()->user()?->isSupplier())
@@ -9,13 +9,13 @@
 
     <div class="flex min-h-screen min-w-0">
         {{-- Sidebar --}}
-        <aside class="supplier-sidebar hidden md:block w-64 {{ $bgColor }} border-r border-gray-800 p-6 sticky top-0">
-            <h2 class="text-lg font-semibold mb-8">
+        <aside class="supplier-sidebar hidden md:block w-64 shrink-0 {{ $bgColor }} border-r p-5 sticky top-0">
+            <h2 class="text-lg font-semibold mb-5">
                 {{ ucfirst(auth()->user()->role) }} Panel
             </h2>
 
             @if(auth()->user()->role === 'supplier')
-                @include('layouts.partials.sidebar-supplier', compact('bgColor'))
+                @include('layouts.partials.sidebar-supplier')
             @endif
 
             @if(in_array(auth()->user()->role, ['admin','superadmin']))

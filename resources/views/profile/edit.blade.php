@@ -7,6 +7,9 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            @if($user->is_demo_sandbox)
+                <p>The shared demo account profile and login are fixed so every recruiter can access the sandbox.</p>
+            @else
             <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                 <div class="max-w-xl">
                     @include('profile.partials.update-profile-information-form')
@@ -24,6 +27,7 @@
                     @include('profile.partials.delete-user-form')
                 </div>
             </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

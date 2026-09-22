@@ -23,6 +23,9 @@ class BookingService
 {
     public function create(array $data): Booking
     {
+        if (auth()->user()?->is_demo_sandbox) {
+            throw new BookingException('The demo supplier account cannot create bookings.');
+        }
         $checkIn = Carbon::parse(
             $data['check_in']
         )->startOfDay();
@@ -50,7 +53,7 @@ class BookingService
         ) {
             // Serialize catalog retirement with booking creation.
             $hotel = \App\Models\Hotel::whereKey($data['hotel_id'])->lockForUpdate()->first();
-            if (! $hotel || $hotel->archived_at || $hotel->supplier?->supplier_deactivated_at) {
+            if (! $hotel || $hotel->archived_at || $hotel->supplier?->supplier_deactivated_at || $hotel->isDemoSandbox()) {
                 throw new BookingException('This hotel is no longer available for new bookings.');
             }
 

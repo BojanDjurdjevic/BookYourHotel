@@ -45,12 +45,15 @@ class HotelController extends Controller
         $hotel = \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
             $supplier = \App\Models\User::whereKey(auth()->id())->lockForUpdate()->firstOrFail();
             Gate::forUser($supplier)->authorize('create', Hotel::class);
+            app(\App\Services\DemoSupplierSandbox::class)->ensureHotelCapacity($supplier);
             return $supplier->hotels()->create($data);
         }, 3);
 
         return redirect()
             ->route('supplier.hotels.setup.info',$hotel)
-            ->with('success',"New hotel $name successfully created!");
+            ->with('success', $hotel->isDemoSandbox()
+                ? 'Demo hotel created successfully. Continue the setup flow — this hotel will remain private and will be automatically removed after a few hours.'
+                : "New hotel $name successfully created!");
     }
 
     public function publish(Hotel $hotel)
