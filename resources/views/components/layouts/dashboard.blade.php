@@ -1,6 +1,6 @@
 <x-app-layout>
     @php
-        $bgColor = auth()->user()->role == 'superadmin' ? 'bg-purple-900' : 'supplier-sidebar--supplier';
+        $bgColor = auth()->user()->role === 'supplier' ? 'supplier-sidebar--supplier' : (auth()->user()->role === 'superadmin' ? 'bg-purple-900 border-gray-800' : 'bg-emerald-900 border-gray-800');
     @endphp
 
     @if(auth()->user()?->isSupplier())

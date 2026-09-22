@@ -46,15 +46,8 @@
             Bulk
         </x-button>
 
-        <div x-show="bulk.open">
+        <div x-cloak x-show="bulk.open">
             <div>
-                <x-button
-                    variant="primary"
-                    @click="openBulk"
-                >
-                    Bulk
-                </x-button>
-
                 <div
                     x-show="bulk.open"
                     x-transition.opacity
@@ -69,7 +62,7 @@
                         <!-- Header -->
                         <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-700">
 
-                            <h2 class="text-xl font-semibold text-white">
+                            <h2 class="text-xl font-semibold text-gray-100">
                                 Bulk Inventory Update
                             </h2>
 
@@ -88,26 +81,28 @@
                             <div class="grid grid-cols-2 gap-4">
 
                                 <div>
-                                    <label class="block mb-2 text-sm text-zinc-300">
+                                    <label for="bulk-from" class="block mb-2 text-sm text-zinc-300">
                                         From
                                     </label>
 
                                     <input
+                                        id="bulk-from"
                                         type="date"
                                         x-model="bulk.from"
-                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-blue-500 focus:ring-blue-500"
+                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
                                     >
                                 </div>
 
                                 <div>
-                                    <label class="block mb-2 text-sm text-zinc-300">
+                                    <label for="bulk-to" class="block mb-2 text-sm text-zinc-300">
                                         To
                                     </label>
 
                                     <input
+                                        id="bulk-to"
                                         type="date"
                                         x-model="bulk.to"
-                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-blue-500 focus:ring-blue-500"
+                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
                                     >
                                 </div>
 
@@ -116,29 +111,34 @@
                             <div class="grid grid-cols-2 gap-4">
 
                                 <div>
-                                    <label class="block mb-2 text-sm text-zinc-300">
-                                        Available units
+                                    <label for="bulk-available" class="block mb-2 text-sm text-zinc-300">
+                                        Available rooms
                                     </label>
 
                                     <input
+                                        id="bulk-available"
                                         type="number"
                                         min="0"
+                                        step="1"
+                                        placeholder="e.g. 12"
                                         x-model="bulk.available"
-                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-blue-500 focus:ring-blue-500"
+                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
                                     >
                                 </div>
 
                                 <div>
-                                    <label class="block mb-2 text-sm text-zinc-300">
+                                    <label for="bulk-price" class="block mb-2 text-sm text-zinc-300">
                                         Price per night (EUR)
                                     </label>
 
                                     <input
+                                        id="bulk-price"
                                         type="number"
                                         min="0"
                                         step="0.01"
+                                        placeholder="e.g. 45"
                                         x-model="bulk.price"
-                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-white focus:border-blue-500 focus:ring-blue-500"
+                                        class="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-gray-100 focus:border-blue-500 focus:ring-blue-500"
                                     >
                                 </div>
 
@@ -147,8 +147,8 @@
                         </div>
 
                         <p class="px-6 text-red-400" x-show="error" x-text="error" role="alert"></p>
-                        <p class="px-6 text-amber-300" x-show="bulkRows.length" x-text="`${bulkRows.length} dates previewed. Current availability: ${Math.min(...bulkRows.map(row => row.available))}–${Math.max(...bulkRows.map(row => row.available))}. Save will set availability to ${bulk.available} and price to ${bulk.price}.`"></p>
-                        <button type="button" @click="previewBulk" :disabled="busy" class="mx-6 px-4 py-2 bg-blue-600 rounded-lg">Preview current inventory</button>
+                        <p class="px-6 text-amber-700 dark:text-amber-300" x-show="bulkRows.length" x-text="`${bulkRows.length} dates previewed. Current availability: ${Math.min(...bulkRows.map(row => row.available))}–${Math.max(...bulkRows.map(row => row.available))}. Save will set availability to ${bulk.available} and price to ${bulk.price}.`"></p>
+                        <button type="button" @click="previewBulk" :disabled="busy" class="mx-6 px-4 py-2 bg-blue-600 text-white rounded-lg">Preview current inventory</button>
                         <!-- Footer -->
                         <div class="flex justify-end gap-3 px-6 py-4 border-t border-zinc-700">
 
@@ -244,17 +244,25 @@
                             @click.stop
                         >
 
-                            <input
+                            <label class="text-xs">
+                                Available rooms
+                                <input
                                 type="number"
-                                class="w-16 text-black text-center"
+                                min="0" step="1"
+                                class="w-20 rounded border border-gray-700 bg-gray-800 text-gray-100 text-center"
                                 x-model="form.available"
-                            >
+                                >
+                            </label>
 
-                            <input
+                            <label class="text-xs">
+                                Price (EUR)
+                                <input
                                 type="number"
-                                class="w-16 text-black text-center"
+                                min="0" step="0.01"
+                                class="w-20 rounded border border-gray-700 bg-gray-800 text-gray-100 text-center"
                                 x-model="form.price"
-                            >
+                                >
+                            </label>
 
                             <button @click.stop="save(date)" :disabled="busy" :class="busy && 'opacity-50 cursor-wait'">OK</button>
                             <button @click.stop="editing = null; form = {}">Cancel</button>

@@ -11,7 +11,7 @@
 <h1 class="text-xl font-bold mb-6">
     Inventory Manager
 </h1>
-<p class="mb-4 text-sm text-amber-300">Setup creates inventory only for dates that do not exist yet. To change existing dates, open the inventory calendar or the room inventory editor and review current availability before saving.</p>
+<p class="mb-4 text-sm text-amber-700 dark:text-amber-300">Setup creates inventory only for dates that do not exist yet. To change existing dates, open the inventory calendar or the room inventory editor and review current availability before saving.</p>
 
 <form
     method="POST"
@@ -73,31 +73,43 @@
 
         <div class="grid grid-cols-2 gap-4">
 
-            <input type="date"
+            <label class="block text-sm">
+                <span class="mb-2 block">From</span>
+                <input type="date"
                 x-model="from"
-                class="border rounded-lg p-2 bg-gray-800"
-            />
+                class="w-full border rounded-lg p-2 bg-gray-800"
+                />
+            </label>
 
-            <input type="date"
+            <label class="block text-sm">
+                <span class="mb-2 block">To</span>
+                <input type="date"
                 x-model="to"
-                class="border rounded-lg p-2 bg-gray-800"
-            />
+                class="w-full border rounded-lg p-2 bg-gray-800"
+                />
+            </label>
 
             </div>
 
             <div class="grid grid-cols-2 gap-4 mt-4">
 
-            <input type="number"
+            <label class="block text-sm">
+                <span class="mb-2 block font-medium">Available rooms</span>
+                <input type="number" min="0" step="1"
                 x-model="available"
-                placeholder="Available rooms"
-                class="border rounded-lg p-2 bg-gray-800"
-            />
+                placeholder="e.g. 12"
+                class="w-full border rounded-lg p-2 bg-gray-800"
+                />
+            </label>
 
-            <input type="number"
+            <label class="block text-sm">
+                <span class="mb-2 block font-medium">Price per night (EUR)</span>
+                <input type="number" min="0" step="0.01"
                 x-model="price"
-                placeholder="Price"
-                class="border rounded-lg p-2 bg-gray-800"
-            />
+                placeholder="e.g. 45"
+                class="w-full border rounded-lg p-2 bg-gray-800"
+                />
+            </label>
 
         </div>
 
