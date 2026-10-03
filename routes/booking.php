@@ -14,7 +14,14 @@ Route::get('/hotels/{hotel}/booking', [BookingController::class, 'show'])->name(
 
 Route::get('/hotels/{hotel}/availability', [BookingController::class, 'availability'])->middleware('throttle:availability')->name('booking.availability');
 
-Route::post('/booking', [BookingController::class, 'store'])->middleware('throttle:booking-create')->name('booking.store');
+Route::post('/booking', [BookingController::class, 'store'])->middleware([\App\Http\Middleware\EnsureBookingEmailVerified::class, 'throttle:booking-create'])->block(30, 30)->name('booking.store');
+
+Route::prefix('booking/verify-email')->name('booking.verification.')->middleware('guest')->controller(\App\Http\Controllers\Booking\GuestBookingVerificationController::class)->group(function () {
+    Route::get('/', 'show')->name('show');
+    Route::post('/verify', 'verify')->middleware('throttle:guest-otp-verify')->block(30, 30)->name('verify');
+    Route::post('/resend', 'resend')->middleware('throttle:guest-otp-send')->block(30, 30)->name('resend');
+    Route::post('/edit', 'edit')->block(30, 30)->name('edit');
+});
 
 Route::get('/booking/{booking}/success', [BookingController::class, 'success'])->middleware('signed')->name('booking.success');
 

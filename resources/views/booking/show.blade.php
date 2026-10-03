@@ -5,6 +5,7 @@
             hotelId: {{ $hotel->id }},
             availabilityUrl: '{{ route('booking.availability', $hotel) }}',
             storeUrl: '{{ route('booking.store') }}',
+            editGuest: @js(session('guest_booking_edit')),
             prefill: @js($prefill)
         })"
         class="max-w-6xl mx-auto py-8"
@@ -1342,10 +1343,10 @@
                 hotelId: config.hotelId,
 
                 guest: {
-                    firstName: '',
-                    lastName: '',
-                    email: '',
-                    phone: '',
+                    firstName: config.editGuest?.guest_name?.split(' ')[0] || '',
+                    lastName: config.editGuest?.guest_name?.split(' ').slice(1).join(' ') || '',
+                    email: config.editGuest?.guest_email || '',
+                    phone: config.editGuest?.guest_phone || '',
                 },
 
                 submitting: false,
@@ -1739,6 +1740,10 @@
 
                         if (!response.ok) {
 
+                            if (data.verification_url) {
+                                window.location.href = data.verification_url
+                                return
+                            }
                             throw new Error(
                                 data.message ?? 'Unable to create booking.'
                             )

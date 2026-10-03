@@ -35,6 +35,11 @@ class BookingController extends Controller
     public function store(CreateBookingRequest $request)
     {
         try {
+            if (! $request->user()) {
+                app(\App\Services\GuestBookingVerification::class)->start($request, $request->validated());
+
+                return response()->json(['redirect' => route('booking.verification.show')], 202);
+            }
 
             $booking = $this->bookingService->create(
                 $request->validated()
@@ -52,6 +57,8 @@ class BookingController extends Controller
             'message' => $e->getMessage(),
         ], 422);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Throwable $e) {
 
             report($e);

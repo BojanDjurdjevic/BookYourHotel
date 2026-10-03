@@ -10,6 +10,40 @@ use Tests\TestCase;
 
 class BookingNotificationTest extends TestCase
 {
+    public function test_guest_otp_completion_dispatches_existing_notices_only_after_booking_commit(): void
+    {
+        Notification::fake();
+        $this->withCredentials()->withCookie(config('session.cookie'), \Illuminate\Support\Str::random(40));
+        $this->postJson(route('booking.store'), $this->payload())->assertStatus(202);
+        Notification::assertSentTimes(BookingNotice::class, 0);
+        $code = Notification::sent(new \Illuminate\Notifications\AnonymousNotifiable, \App\Notifications\GuestBookingCode::class)->sole()->code;
+        $this->post(route('booking.verification.verify'), [
+            'token' => \App\Models\GuestBookingChallenge::sole()->token, 'code' => $code,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+        Notification::assertSentOnDemand(BookingNotice::class, fn ($notice, $channels, $recipient) => $recipient->routes['mail'] === $this->payload()['guest_email']);
+        Notification::assertSentTo($this->supplier, BookingNotice::class);
+        $this->assertDatabaseCount('guest_booking_challenges', 0);
+        $this->assertDatabaseCount('bookings', 1);
+    }
+
+    public function test_database_cache_send_budget_survives_otp_mail_transaction_failure(): void
+    {
+        \Illuminate\Support\Facades\RateLimiter::swap(new \Illuminate\Cache\RateLimiter(\Illuminate\Support\Facades\Cache::store('database')));
+        Notification::shouldReceive('send')->once()->andThrow(new \RuntimeException('Mail delivery failed'));
+        $request = \Illuminate\Http\Request::create('/booking', 'POST', [], [], [], ['REMOTE_ADDR' => '127.0.0.1']);
+        $request->setLaravelSession(app('session')->driver());
+        try {
+            app(\App\Services\GuestBookingVerification::class)->start($request, $this->payload());
+            $this->fail('Expected delivery failure.');
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            $this->assertStringContainsString('could not send', $exception->getMessage());
+        }
+        $this->assertSame(1, \Illuminate\Support\Facades\RateLimiter::attempts('guest-otp:ip:127.0.0.1'));
+        $this->assertDatabaseCount('guest_booking_challenges', 0);
+        $this->assertDatabaseCount('bookings', 0);
+        $this->assertDatabaseCount('room_inventories', 0);
+    }
+
     // Real top-level commits, not RefreshDatabase's enclosing test transaction.
     use CreatesBookingScenario;
     protected function setUp(): void {

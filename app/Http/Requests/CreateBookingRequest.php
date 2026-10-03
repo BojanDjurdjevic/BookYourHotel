@@ -6,6 +6,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CreateBookingRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->guest_email)) {
+            $this->merge(['guest_email' => \App\Support\EmailAddress::normalize($this->guest_email)]);
+        }
+    }
+
     public function authorize(): bool
     {
         return true;

@@ -27,6 +27,7 @@ class DemoSeederIntegrityTest extends TestCase
         $this->assertSame(300, $summary['payments']);
         $this->assertSame(450, $inserts);
         $this->assertDatabaseCount('users', 34);
+        $this->assertSame(0, DB::table('users')->where('email', 'like', '%@demo.bookyourhotel.test')->whereNull('email_verified_at')->count());
         $this->assertSame(50, DB::table('hotels')->distinct()->count('city'));
         $this->assertSame(164250, DB::table('room_inventories')->whereBetween('date', ['2026-10-01', '2027-09-30'])->count());
         $this->assertFalse(DB::table('room_inventories as i')->join('rooms as r', 'r.id', '=', 'i.room_id')->whereColumn('i.available', '>', 'r.total_units')->orWhere('i.available', '<', 0)->exists());

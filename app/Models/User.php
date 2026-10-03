@@ -2,13 +2,22 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
+    public function sendEmailVerificationNotification(): void
+    {
+        if ($this->is_demo_sandbox || \App\Support\EmailAddress::isDemo($this->email)) {
+            return;
+        }
+
+        parent::sendEmailVerificationNotification();
+    }
+
     protected static function booted(): void
     {
         static::updating(function (User $user) {

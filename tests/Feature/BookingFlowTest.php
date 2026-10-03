@@ -118,7 +118,18 @@ class BookingFlowTest extends TestCase
         ]);
         $data['total'] = 1;
 
-        $response = $this->postJson(route('booking.store'), $data)->assertOk();
+        \Illuminate\Support\Facades\Notification::fake();
+        $this->withCredentials()->withCookie(config('session.cookie'), \Illuminate\Support\Str::random(40));
+        $this->postJson(route('booking.store'), $data)->assertStatus(202);
+        $this->assertDatabaseCount('bookings', 0);
+        $code = null;
+        \Illuminate\Support\Facades\Notification::assertSentOnDemand(\App\Notifications\GuestBookingCode::class, function ($notice) use (&$code) {
+            $code = $notice->code;
+            return true;
+        });
+        $response = $this->post(route('booking.verification.verify'), [
+            'token' => \App\Models\GuestBookingChallenge::sole()->token, 'code' => $code,
+        ])->assertRedirect();
         $booking = Booking::firstOrFail();
 
         $this->assertNull($booking->user_id);
@@ -128,7 +139,7 @@ class BookingFlowTest extends TestCase
         $this->assertEqualsCanonicalizing($this->boards, $booking->items()->pluck('board_type_id')->all());
         $this->assertSame([0, 0], RoomInventory::orderBy('date')->pluck('available')->all());
 
-        $url = $response->json('redirect');
+        $url = $response->headers->get('Location');
         $this->get($url)->assertOk()->assertSee($booking->booking_number)
             ->assertSee('awaiting confirmation')->assertDontSee($booking->guest_email);
         $this->get(route('booking.success', $booking))->assertForbidden();

@@ -21,8 +21,26 @@ use Illuminate\Database\QueryException;
 
 class BookingService
 {
+    /** Read-only preflight; creation repeats these checks under the existing locks. */
+    public function validateIntent(array $data): void
+    {
+        $checkIn = Carbon::parse($data['check_in'])->startOfDay();
+        $checkOut = Carbon::parse($data['check_out'])->startOfDay();
+        $this->validatePeriod($checkIn, $checkOut);
+        $period = $this->buildPeriod($checkIn, $checkOut);
+        $rooms = $this->loadRooms($data['items'], false);
+        $this->ensureRoomsBelongToHotel($rooms, $data['hotel_id']);
+        $this->ensureGuestCapacity($rooms, $data['items']);
+        $inventories = $this->loadInventoriesForUpdate($rooms, $period, false);
+        $this->ensureAvailability($rooms, $inventories, $period, $data['items']);
+        $this->calculateTotals($rooms, $inventories, $data['items'], $period);
+    }
+
     public function create(array $data): Booking
     {
+        if (auth()->user() && ! auth()->user()->hasVerifiedEmail()) {
+            throw new BookingException('Please verify your account email before booking.');
+        }
         if (auth()->user()?->is_demo_sandbox) {
             throw new BookingException('The demo supplier account cannot create bookings.');
         }
@@ -181,7 +199,7 @@ class BookingService
         return $period;
     }
 
-    private function loadRooms(array $items): EloquentCollection
+    private function loadRooms(array $items, bool $lock = true): EloquentCollection
     {
         $roomIds = collect($items)
             ->pluck('room_id')
@@ -189,7 +207,7 @@ class BookingService
 
         return Room::query()->whereNull('archived_at')
             ->whereIn('id', $roomIds)
-            ->with(['boardTypes' => fn ($boards) => $boards->lockForUpdate()])
+            ->with(['boardTypes' => fn ($boards) => $boards->when($lock, fn ($query) => $query->lockForUpdate())])
             ->get()
             ->keyBy('id');
     }
@@ -218,7 +236,7 @@ class BookingService
         RoomInventory::query()->insertOrIgnore($rows);
     }
 
-    private function loadInventoriesForUpdate(EloquentCollection $rooms, Collection $period): Collection 
+    private function loadInventoriesForUpdate(EloquentCollection $rooms, Collection $period, bool $lock = true): Collection
     {
         return RoomInventory::query()
             ->whereIn(
@@ -232,7 +250,7 @@ class BookingService
                     $period->last()->toDateString(),
                 ]
             )
-            ->orderBy('room_id')->orderBy('date')->lockForUpdate()
+            ->orderBy('room_id')->orderBy('date')->when($lock, fn ($query) => $query->lockForUpdate())
             ->get()
             ->groupBy('room_id')
             ->map(function ($items) {

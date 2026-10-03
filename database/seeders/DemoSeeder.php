@@ -35,14 +35,14 @@ class DemoSeeder extends Seeder
             $password = Hash::make('Demo-Local-2026!');
             $suppliers = [];
             for ($i = 1; $i <= 10; $i++) {
-                $suppliers[] = User::create(['name' => 'Demo Supplier '.$i, 'email' => sprintf('supplier%02d@demo.bookyourhotel.test', $i), 'password' => $password, 'role' => 'supplier'])->id;
+                $suppliers[] = tap(User::create(['name' => 'Demo Supplier '.$i, 'email' => sprintf('supplier%02d@demo.bookyourhotel.test', $i), 'password' => $password, 'role' => 'supplier']), fn ($user) => $user->forceFill(['email_verified_at' => now()])->save())->id;
             }
             $customers = [];
             foreach (['user', 'admin', 'superadmin'] as $role) {
-                $customers[] = User::create(['name' => 'Demo '.ucfirst($role), 'email' => $role.'@demo.bookyourhotel.test', 'password' => $password, 'role' => $role])->id;
+                $customers[] = tap(User::create(['name' => 'Demo '.ucfirst($role), 'email' => $role.'@demo.bookyourhotel.test', 'password' => $password, 'role' => $role]), fn ($user) => $user->forceFill(['email_verified_at' => now()])->save())->id;
             }
             for ($i = 1; $i <= 20; $i++) {
-                $customers[] = User::create(['name' => 'Demo Traveler '.$i, 'email' => 'traveler'.$i.'@demo.bookyourhotel.test', 'password' => $password, 'role' => 'user'])->id;
+                $customers[] = tap(User::create(['name' => 'Demo Traveler '.$i, 'email' => 'traveler'.$i.'@demo.bookyourhotel.test', 'password' => $password, 'role' => 'user']), fn ($user) => $user->forceFill(['email_verified_at' => now()])->save())->id;
             }
             $types = [];
             foreach (['Classic King', 'Deluxe Twin', 'Junior Suite', 'Family Suite', 'Panorama Suite', 'Terrace Studio'] as $name) {

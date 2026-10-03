@@ -6,7 +6,7 @@ import { runInNewContext } from 'node:vm'
 const blade = readFileSync(new URL('../../resources/views/booking/show.blade.php', import.meta.url), 'utf8')
 const script = blade.match(/<script>([\s\S]*?)<\/script>/)[1]
 
-function page(fetch) {
+function page(fetch, overrides = {}) {
     const context = {
         fetch,
         URLSearchParams,
@@ -14,8 +14,33 @@ function page(fetch) {
         window: { location: { href: '' }, scrollTo() {} },
     }
     runInNewContext(script, context)
-    return context.bookingPage({ hotelId: 1, availabilityUrl: '/availability', storeUrl: '/booking' })
+    const state = context.bookingPage({ hotelId: 1, availabilityUrl: '/availability', storeUrl: '/booking', ...overrides })
+    state.testWindow = context.window
+    return state
 }
+
+test('editing a verification challenge restores guest details but requires fresh room selection', () => {
+    const state = page(undefined, { editGuest: { guest_name: 'Guest Van Test', guest_email: 'guest@example.test', guest_phone: '123' } })
+    assert.equal(state.guest.firstName, 'Guest')
+    assert.equal(state.guest.lastName, 'Van Test')
+    assert.equal(state.guest.email, 'guest@example.test')
+    assert.equal(state.guest.phone, '123')
+    assert.equal(state.bookingItems.length, 0)
+    assert.equal(state.hasCurrentAvailability(), false)
+})
+
+test('guest submission proceeds to verification and account verification errors open the native notice', async () => {
+    for (const response of [
+        { ok: true, json: async () => ({ redirect: '/booking/verify-email' }) },
+        { ok: false, json: async () => ({ verification_url: '/verify-email', message: 'Verify your email.' }) },
+    ]) {
+        const state = selectedPage(async () => response)
+        await state.submitBooking()
+        assert.equal(state.testWindow.location.href, response.ok ? '/booking/verify-email' : '/verify-email')
+        assert.equal(state.submitError, null)
+        assert.equal(state.submitting, false)
+    }
+})
 
 function selectedPage(fetch) {
     const state = page(fetch)

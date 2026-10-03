@@ -34,6 +34,15 @@ class AppServiceProvider extends ServiceProvider
             $view->with('notificationUnread', $request->attributes->get('notificationUnread', 0));
         });
         RateLimiter::for('availability', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
+        $otpResponse = fn (Request $request) => fn () => $request->expectsJson()
+            ? response()->json(['message' => 'Too many verification requests. Please wait a minute and try again.'], 429)
+            : back()->withErrors(['code' => 'Too many verification requests. Please wait a minute and try again.']);
+        RateLimiter::for('guest-otp-verify', fn (Request $request) => [
+            Limit::perMinute(20)->by('otp-verify-ip:'.$request->ip())->response($otpResponse($request)),
+            Limit::perMinute(10)->by('otp-verify-session:'.$request->session()->getId())->response($otpResponse($request)),
+        ]);
+        RateLimiter::for('guest-otp-send', fn (Request $request) => Limit::perMinute(5)
+            ->by('otp-send:'.$request->ip())->response($otpResponse($request)));
         RateLimiter::for('booking-create', fn (Request $request) => [
             Limit::perMinute(10)->by('minute:'.$request->ip()),
             Limit::perHour(60)->by('hour:'.$request->ip()),
