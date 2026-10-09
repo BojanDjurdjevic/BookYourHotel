@@ -18,7 +18,7 @@ class SupplierLifecycleService
     {
         DB::transaction(function () use ($hotel, $actor) {
             $hotel = Hotel::whereKey($hotel->id)->lockForUpdate()->firstOrFail();
-            Gate::forUser($actor)->authorize('delete', $hotel);
+            Gate::forUser($actor)->authorize('archive', $hotel);
             $this->ensureResolved(Booking::where('hotel_id', $hotel->id));
             $this->archiveProperty($hotel);
         }, 3);
@@ -46,13 +46,13 @@ class SupplierLifecycleService
         }, 3);
     }
 
-    public function deactivateSupplier(User $supplier): void
+    public function deactivateSupplier(User $supplier, User $actor, string $errorBag = 'userDeletion'): void
     {
-        abort_if($supplier->is_demo_sandbox, 403, 'The shared demo account cannot be deactivated.');
-        DB::transaction(function () use ($supplier) {
+        DB::transaction(function () use ($supplier, $actor, $errorBag) {
             $supplier = User::whereKey($supplier->id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($actor)->authorize('deactivate', $supplier);
             $hotels = Hotel::where('supplier_id', $supplier->id)->orderBy('id')->lockForUpdate()->get();
-            $this->ensureResolved(Booking::whereIn('hotel_id', $hotels->modelKeys()), 'userDeletion');
+            $this->ensureResolved(Booking::whereIn('hotel_id', $hotels->modelKeys()), $errorBag);
             foreach ($hotels as $hotel) {
                 $this->archiveProperty($hotel);
             }

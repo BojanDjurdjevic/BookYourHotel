@@ -36,7 +36,8 @@ class RouteIntegrityTest extends TestCase
     {
         $files = Finder::create()->files()->in([app_path(), resource_path('views'), resource_path('js')])->name(['*.php', '*.js']);
         foreach ($files as $file) {
-            preg_match_all('/(?<!request->)(?<!Notification::)(?:route|signedRoute|temporarySignedRoute)\(\s*[\'"]([^\'"]+)[\'"]\s*[,)]/', $file->getContents(), $matches);
+            // Request/FormRequest route() calls read bound parameters, not named URLs.
+            preg_match_all('/(?<!->)(?<!Notification::)(?:route|signedRoute|temporarySignedRoute)\(\s*[\'"]([^\'"]+)[\'"]\s*[,)]/', $file->getContents(), $matches);
             foreach ($matches[1] as $name) {
                 $this->assertTrue(Route::has($name), $file->getRelativePathname().': '.$name);
             }

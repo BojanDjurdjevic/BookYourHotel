@@ -8,6 +8,23 @@ use App\Models\User;
 
 class HotelPolicy
 {
+    public function reviewAny(User $user): bool
+    {
+        return $user->isAdmin();
+    }
+
+    public function review(User $user, Hotel $hotel): bool
+    {
+        return $user->isAdmin();
+    }
+
+    public function archive(User $user, Hotel $hotel): bool
+    {
+        return ! $hotel->archived_at && ($user->isAdmin()
+            ? ! $hotel->supplier->is_demo_sandbox
+            : $this->update($user, $hotel));
+    }
+
     public function before(User $user, string $ability): ?bool
     {
         if ($user->supplier_deactivated_at) return false;
@@ -38,7 +55,7 @@ class HotelPolicy
 
     public function delete(User $user, Hotel $hotel): bool
     {
-        return $this->update($user, $hotel);
+        return $this->archive($user, $hotel);
     }
 
     public function restore(User $user, Hotel $hotel): bool

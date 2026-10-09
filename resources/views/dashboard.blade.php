@@ -8,7 +8,7 @@
             <a href="{{ route('profile.edit') }}" class="px-6 py-3 bg-gray-800 rounded-xl">Edit profile</a>
             @if(auth()->user()->isSupplier())
                 <a href="{{ route('supplier.dashboard') }}" class="px-6 py-3 bg-green-700 rounded-xl">Supplier dashboard</a>
-            @elseif(auth()->user()->isSuperAdmin())
+            @elseif(auth()->user()->isAdmin())
                 <a href="{{ route('admin.dashboard') }}" class="px-6 py-3 bg-purple-700 rounded-xl">Admin dashboard</a>
             @endif
         </div>

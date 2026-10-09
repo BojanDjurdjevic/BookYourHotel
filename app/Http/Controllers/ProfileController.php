@@ -49,7 +49,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         if ($user->role === \App\Models\User::ROLE_SUPPLIER || $user->hotels()->exists()) {
-            app(\App\Services\SupplierLifecycleService::class)->deactivateSupplier($user);
+            app(\App\Services\SupplierLifecycleService::class)->deactivateSupplier($user, $user);
             Auth::logout();
         } else {
             Auth::logout();

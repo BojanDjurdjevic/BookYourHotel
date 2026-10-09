@@ -45,6 +45,11 @@ class Hotel extends Model
         return $this->hasMany(Room::class)->whereNull('rooms.archived_at');
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
     public function images()
     {
         return $this->hasMany(HotelImage::class);

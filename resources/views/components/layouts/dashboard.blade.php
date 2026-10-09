@@ -7,9 +7,15 @@
         @include('layouts.partials.supplier-mobile-nav')
     @endif
 
+    @if(auth()->user()?->isAdmin())
+        <div class="md:hidden mb-4 bg-gray-900 border border-gray-800 rounded-xl p-2">
+            @include('layouts.partials.sidebar-admin')
+        </div>
+    @endif
+
     <div class="flex min-h-screen min-w-0">
         {{-- Sidebar --}}
-        <aside class="supplier-sidebar hidden md:block w-64 shrink-0 {{ $bgColor }} border-r p-5 sticky top-0">
+        <aside class="supplier-sidebar hidden md:block w-64 shrink-0 {{ auth()->user()->isAdmin() ? 'bg-gray-900 border-gray-800' : $bgColor }} border-r p-5 sticky top-0">
             <h2 class="text-lg font-semibold mb-5">
                 {{ ucfirst(auth()->user()->role) }} Panel
             </h2>

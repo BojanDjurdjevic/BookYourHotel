@@ -143,8 +143,8 @@ class MvpIntegrationTest extends TestCase
         $this->get(route('bookings.show', $pendingBooking))->assertOk()->assertSee('Confirm booking');
         $this->get(route('supplier.bookings'))->assertOk()->assertSee('OWN-CONFIRMED')->assertDontSee('OWN-PENDING');
         $this->actingAs(User::factory()->create(['role' => 'admin']))->get(route('bookings.index'))->assertSee('FOREIGN-PENDING');
-        $this->get(route('admin.dashboard'))->assertForbidden();
-        $this->actingAs(User::factory()->create(['role' => 'superadmin']))->get(route('admin.dashboard'))->assertOk()->assertSee(route('bookings.index'));
+        $this->get(route('admin.dashboard'))->assertOk()->assertSee(route('admin.bookings.index'));
+        $this->actingAs(User::factory()->create(['role' => 'superadmin']))->get(route('admin.dashboard'))->assertOk()->assertSee(route('admin.bookings.index'));
     }
 
     public function test_room_edit_preserves_facilities_and_saves_board_pivots(): void

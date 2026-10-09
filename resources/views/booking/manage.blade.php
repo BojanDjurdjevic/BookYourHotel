@@ -1,4 +1,4 @@
-@if(auth()->user()?->isSupplier())
+@if(auth()->user()?->isSupplier() || auth()->user()?->isAdmin())
     <x-layouts.dashboard>
         @include('booking.manage-content')
     </x-layouts.dashboard>

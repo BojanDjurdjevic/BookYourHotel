@@ -93,4 +93,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Hotel::class, 'supplier_id', 'id');
     }
+
+    public function suppliedBookings()
+    {
+        return $this->hasManyThrough(Booking::class, Hotel::class, 'supplier_id', 'hotel_id');
+    }
 }

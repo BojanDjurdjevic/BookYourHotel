@@ -6,10 +6,8 @@
     @if(auth()->user()->isSupplier())
         <a href="{{ route('supplier.dashboard') }}" class="text-green-400">Supplier</a>
         <a href="{{ route('supplier.hotels.index') }}" class="text-slate-700 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white">My Hotels</a>
-    @elseif(auth()->user()->isSuperAdmin())
-        <a href="{{ route('admin.dashboard') }}" class="text-purple-400">Admin</a>
     @elseif(auth()->user()->isAdmin())
-        <a href="{{ route('bookings.index') }}" class="text-purple-400">Booking management</a>
+        <a href="{{ route('admin.dashboard') }}" class="text-purple-400">Admin</a>
     @endif
     <a href="{{ route('profile.edit') }}" class="text-slate-700 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white">Profile</a>
     <form method="POST" action="{{ route('logout') }}">@csrf<button class="text-slate-700 hover:text-slate-900 dark:text-gray-300 dark:hover:text-white">Logout</button></form>
